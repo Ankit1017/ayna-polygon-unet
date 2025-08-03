@@ -72,9 +72,9 @@ class Trainer:
         pbar = tqdm(self.train_loader, desc="Training")
         for batch_idx, batch in enumerate(pbar):
             # Move data to device
-            inputs = batch["input"].to(self.device)
-            colors = batch["color"].to(self.device)
-            targets = batch["output"].to(self.device)
+            inputs = batch["input_polygon"].to(self.device)
+            colors = batch["colour_onehot"].to(self.device)
+            targets = batch["output_image"].to(self.device)
 
             # Zero gradients
             self.optimizer.zero_grad()
@@ -114,9 +114,9 @@ class Trainer:
             pbar = tqdm(self.val_loader, desc="Validation")
             for batch in pbar:
                 # Move data to device
-                inputs = batch["input"].to(self.device)
-                colors = batch["color"].to(self.device)
-                targets = batch["output"].to(self.device)
+                inputs = batch["input_polygon"].to(self.device)
+                colors = batch["colour_onehot"].to(self.device)
+                targets = batch["output_image"].to(self.device)
 
                 # Forward pass
                 outputs = self.model(inputs, colors)

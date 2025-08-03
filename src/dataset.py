@@ -54,36 +54,37 @@ class PolygonDataset(Dataset):
         print(f"Loaded {len(self.data)} samples for {split}")
 
     def setup_transforms(self):
-        """Setup image transforms"""
-        # Augmentation transforms (only for training)
-        if self.augment:
-            self.aug_transform = A.Compose([
-                A.Rotate(limit=30, border_mode=cv2.BORDER_CONSTANT, value=0, mask_value=0, p=0.5),
-                A.RandomScale(scale_limit=0.2, p=0.5),
-                A.HorizontalFlip(p=0.5),
-                A.ShiftScaleRotate(
-                    shift_limit=0.1, 
-                    scale_limit=0.1, 
-                    rotate_limit=15, 
-                    border_mode=cv2.BORDER_CONSTANT,
-                    value=0,
-                    mask_value=0,
-                    p=0.5
-                ),
-            ])
-        else:
-            self.aug_transform = None
+      TARGET = 128             # ← Pick the resolution you want (128 or 256)
 
-        # Normalization transform
-        self.norm_transform = A.Compose([
-            A.Normalize(mean=[0.0], std=[1.0]),  # For grayscale input
-            ToTensorV2()
-        ])
+      resize = A.Resize(height=TARGET, width=TARGET,        # 🔹 ADD THIS
+                        interpolation=cv2.INTER_NEAREST)
 
-        self.norm_transform_rgb = A.Compose([
-            A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0]),  # For RGB output
-            ToTensorV2()
-        ])
+      if self.augment:                                   # training split
+          self.aug_transform = A.Compose([
+              A.Rotate(limit=30, border_mode=cv2.BORDER_CONSTANT,
+                      value=0, mask_value=0, p=0.5),
+              A.RandomScale(scale_limit=0.2, p=0.5),
+              A.HorizontalFlip(p=0.5),
+              A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.1,
+                                rotate_limit=15,
+                                border_mode=cv2.BORDER_CONSTANT,
+                                value=0, mask_value=0, p=0.5),
+              resize                                           # 🔹 HERE
+          ])
+      else:                                             # validation split
+          self.aug_transform = resize                    # 🔹 HERE
+
+      # Normalisation definitions stay exactly the same
+      self.norm_transform = A.Compose([
+          A.Normalize(mean=[0.0], std=[1.0]),
+          ToTensorV2()
+      ])
+      self.norm_transform_rgb = A.Compose([
+          A.Normalize(mean=[0.0, 0.0, 0.0],
+                      std=[1.0, 1.0, 1.0]),
+          ToTensorV2()
+      ])
+
 
     def __len__(self):
         return len(self.data)
@@ -93,8 +94,8 @@ class PolygonDataset(Dataset):
         sample = self.data[idx]
 
         # Load images
-        input_path = os.path.join(self.input_dir, sample["input"])
-        output_path = os.path.join(self.output_dir, sample["output"])
+        input_path = os.path.join(self.input_dir, sample["input_polygon"])
+        output_path = os.path.join(self.output_dir, sample["output_image"])
 
         # Read input (grayscale polygon)
         input_img = cv2.imread(input_path, cv2.IMREAD_GRAYSCALE)
@@ -126,17 +127,17 @@ class PolygonDataset(Dataset):
         output_tensor = self.norm_transform_rgb(image=output_img)["image"]  # (3, H, W)
 
         # Create color one-hot encoding
-        color_name = sample["color"]
-        color_onehot = create_color_onehot(color_name)
+        colour_name   = sample["colour"].lower()    
+        color_onehot = create_color_onehot(colour_name)
         color_tensor = torch.from_numpy(color_onehot)
 
         return {
-            "input": input_tensor,
-            "color": color_tensor,
-            "output": output_tensor,
-            "color_name": color_name,
-            "input_filename": sample["input"],
-            "output_filename": sample["output"]
+            "input_polygon": input_tensor,
+            "colour_onehot": color_tensor,
+            "output_image": output_tensor,
+            "color_name": colour_name,
+            "input_fname": sample["input_polygon"],
+            "output_fname": sample["output_image"]
         }
 
 def create_dataloaders(data_root, batch_size=32, num_workers=4):
