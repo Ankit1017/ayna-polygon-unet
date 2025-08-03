@@ -248,6 +248,5 @@ This project is submitted as part of the Ayna ML Internship assignment.
 
 ---
 
-**Author**: [Your Name]  
-**Date**: [Current Date]  
-**Assignment**: Ayna ML Intern - Polygon Color Generation
+**Author**: Ankit Bansal 
+**Date**: 03-08-2025 
