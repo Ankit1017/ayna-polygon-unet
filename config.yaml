@@ -1,0 +1,45 @@
+# Configuration file for Ayna Polygon UNet
+
+# Model Configuration
+MODEL:
+  n_colors: 10
+  bilinear: false
+
+# Training Configuration  
+TRAINING:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0001
+
+# Data Configuration
+DATA:
+  root: "data/dataset"
+  image_size: 256
+  num_workers: 4
+
+# Augmentation Configuration
+AUGMENTATION:
+  rotation_limit: 30
+  scale_limit: 0.2
+  horizontal_flip: true
+
+# Logging Configuration
+LOGGING:
+  use_wandb: true
+  project_name: "polygon-color-unet"
+  log_interval: 100
+  save_interval: 10
+
+# Colors supported by the model
+COLORS:
+  - red
+  - green  
+  - blue
+  - yellow
+  - cyan
+  - magenta
+  - black
+  - white
+  - orange
+  - purple
